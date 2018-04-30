@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -71,8 +70,7 @@ type PlanetsideOutfit struct {
 }
 
 func init() {
-	flag.StringVar(&token, "t", "", "Bot Token")
-	flag.Parse()
+	token = os.Getenv("TOKEN")
 }
 
 var token string
