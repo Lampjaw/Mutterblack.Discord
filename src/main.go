@@ -2,72 +2,20 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"strings"
 	"syscall"
-	"net/http"
-	"io/ioutil"
-	"encoding/json"
-	"regexp"
 	"time"
-	"log"
-	
+
 	"github.com/bwmarrin/discordgo"
 )
-
-type PlanetsideCharacter struct {
-	CharacterId string `json:"id"`
-	Name string `json:"name"`
-	LastSaved string `json:"lastSaved"`
-	FactionId int `json:"factionId"`
-	FactionName string `json:"factionName"`
-	FactionImageId int `json:"factionImageId"`
-	BattleRank int `json:"battleRank"`
-	OutfitAlias string `json:"outfitAlias"`
-	OutfitName string `json:"outfitName"`
-	Kills int `json:"kills"`
-	Deaths int `json:"deaths"`
-	PlayTime int `json:"playTime"`
-	Score int `json:"score"`
-	KillDeathRatio float32 `json:"killDeathRatio"`
-	HeadshotRatio float32 `json:"headshotRatio"`
-	KillsPerHour float32 `json:"killsPerHour"`
-	SiegeLevel float32 `json:"siegeLevel"`
-}
-
-type PlanetsideCharacterWeapon struct {
-	ItemId int `json:"itemId"`
-	WeaponName string `json:"weaponName"`
-	WeaponImageId int `json:"weaponImageId"`
-	Kills int `json:"kills"`
-	Deaths int `json:"deaths"`
-	PlayTime int `json:"playTime"`
-	Score int `json:"score"`
-	Headshots int `json:"headshots"`
-	KillDeathRatio float32 `json:"killDeathRatio"`
-	HeadshotRatio float32 `json:"headshotRatio"`
-	KillsPerHour float32 `json:"killsPerHour"`
-	Accuracy float32 `json:"accuracy"`
-	KillDeathRatioGrade string `json:"killDeathRatioGrade"`
-	HeadshotRatioGrade string `json:"headshotRatioGrade"`
-	KillsPerHourGrade string `json:"killsPerHourGrade"`
-	AccuracyGrade string `json:"accuracyGrade"`
-}
-
-type PlanetsideOutfit struct {
-	Name string `json:"name"`
-	Alias string `json:"alias"`
-	FactionName string `json:"factionName"`
-	FactionImageId int `json:"factionImageId"`
-	WorldName string `json:"worldName"`
-	LeaderName string `json:"leaderName"`
-	MemberCount int `json:"memberCount"`
-	Activity7Days int `json:"activity7Days"`
-	Activity30Days int `json:"activity30Days"`
-	Activity90Days int `json:"activity90Days"`
-}
 
 func init() {
 	token = os.Getenv("TOKEN")
@@ -109,7 +57,7 @@ func main() {
 }
 
 func ready(s *discordgo.Session, event *discordgo.Ready) {
-	
+
 }
 
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -119,17 +67,18 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if strings.HasPrefix(m.Content, "!void") {
 		pat, _ := regexp.Compile(`!void (.*?) (.*)`)
-		args := pat.FindAllStringSubmatch(m.Content, -1)[0];
+		args := pat.FindAllStringSubmatch(m.Content, -1)[0]
 
-		var serviceGroup = args[1]
-		var serviceArgs = strings.Split(args[2], " ")
+		var commandGroup = args[1]
+		var commandArgs = strings.Split(args[2], " ")
 
-		if serviceGroup == "ps2character" {
-			handlePlanetsideCharacter(s, m.ChannelID, serviceArgs)
-		}
-
-		if serviceGroup == "ps2outfit" {
-			handlePlanetsideOutfit(s, m.ChannelID, serviceArgs)
+		switch commandGroup {
+		case "ps2character":
+			handlePlanetsideCharacter(s, m.ChannelID, commandArgs)
+		case "ps2outfit":
+			handlePlanetsideOutfit(s, m.ChannelID, commandArgs)
+		case "weather":
+			handleWeather(s, m.ChannelID, commandArgs)
 		}
 	}
 }
@@ -137,7 +86,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 func handlePlanetsideCharacter(s *discordgo.Session, channelId string, args []string) {
 	if len(args) == 1 {
 		messagePlanetsideCharacter(s, channelId, args[0])
-	} else if (len(args) == 2) {
+	} else if len(args) == 2 {
 		messagePlanetsideCharacterWeapon(s, channelId, args[0], args[1])
 	}
 }
@@ -163,49 +112,49 @@ func messagePlanetsideCharacter(s *discordgo.Session, channelId string, characte
 		},
 		Color: 0x070707,
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
-        	URL: fmt.Sprintf("http://census.daybreakgames.com/files/ps2/images/static/%d.png", character.FactionImageId),
-    	},
+			URL: fmt.Sprintf("http://census.daybreakgames.com/files/ps2/images/static/%d.png", character.FactionImageId),
+		},
 		Fields: []*discordgo.MessageEmbedField{
 			&discordgo.MessageEmbedField{
-				Name: "Last Seen",
-				Value: fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d UTC", lastSaved.Year(), lastSaved.Month(), lastSaved.Day(), lastSaved.Hour(), lastSaved.Minute(), lastSaved.Second()),
+				Name:   "Last Seen",
+				Value:  fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d UTC", lastSaved.Year(), lastSaved.Month(), lastSaved.Day(), lastSaved.Hour(), lastSaved.Minute(), lastSaved.Second()),
 				Inline: false,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Battle Rank",
-				Value: fmt.Sprintf("%d", character.BattleRank),
+				Name:   "Battle Rank",
+				Value:  fmt.Sprintf("%d", character.BattleRank),
 				Inline: false,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Outfit",
-				Value: "[" + character.OutfitAlias + "]" + character.OutfitName,
+				Name:   "Outfit",
+				Value:  "[" + character.OutfitAlias + "]" + character.OutfitName,
 				Inline: false,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Play Time",
-				Value: fmt.Sprintf("%d Hours", character.PlayTime / 3600),
+				Name:   "Play Time",
+				Value:  fmt.Sprintf("%d Hours", character.PlayTime/3600),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "KDR",
-				Value: fmt.Sprintf("%0.2f", character.KillDeathRatio),
+				Name:   "KDR",
+				Value:  fmt.Sprintf("%0.2f", character.KillDeathRatio),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "HSR",
-				Value: fmt.Sprintf("%0.2f%%", character.HeadshotRatio * 100),
+				Name:   "HSR",
+				Value:  fmt.Sprintf("%0.2f%%", character.HeadshotRatio*100),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "KpH",
-				Value: fmt.Sprintf("%0.2f", character.KillsPerHour),
+				Name:   "KpH",
+				Value:  fmt.Sprintf("%0.2f", character.KillsPerHour),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Siege Level",
-				Value: fmt.Sprintf("%0.1f", character.SiegeLevel),
+				Name:   "Siege Level",
+				Value:  fmt.Sprintf("%0.1f", character.SiegeLevel),
 				Inline: true,
-        	},
+			},
 		},
 	}
 
@@ -220,80 +169,80 @@ func messagePlanetsideCharacterWeapon(s *discordgo.Session, channelId string, ch
 		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)	
+	body, err := ioutil.ReadAll(resp.Body)
 
 	var weapon PlanetsideCharacterWeapon
 	json.Unmarshal(body, &weapon)
-	
+
 	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
 			Name: characterName + " [" + weapon.WeaponName + "]",
 		},
 		Color: 0x070707,
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
-        	URL: fmt.Sprintf("http://census.daybreakgames.com/files/ps2/images/static/%d.png", weapon.WeaponImageId),
-    	},
+			URL: fmt.Sprintf("http://census.daybreakgames.com/files/ps2/images/static/%d.png", weapon.WeaponImageId),
+		},
 		Fields: []*discordgo.MessageEmbedField{
 			&discordgo.MessageEmbedField{
-				Name: "Kills",
-				Value: fmt.Sprintf("%d", weapon.Kills),
+				Name:   "Kills",
+				Value:  fmt.Sprintf("%d", weapon.Kills),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Deaths",
-				Value: fmt.Sprintf("%d", weapon.Deaths),
+				Name:   "Deaths",
+				Value:  fmt.Sprintf("%d", weapon.Deaths),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Play Time",
-				Value: fmt.Sprintf("%d Minutes", weapon.PlayTime / 60),
+				Name:   "Play Time",
+				Value:  fmt.Sprintf("%d Minutes", weapon.PlayTime/60),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Score",
-				Value: fmt.Sprintf("%d", weapon.Score),
+				Name:   "Score",
+				Value:  fmt.Sprintf("%d", weapon.Score),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "KpH",
-				Value: fmt.Sprintf("%0.2f", weapon.KillsPerHour),
+				Name:   "KpH",
+				Value:  fmt.Sprintf("%0.2f", weapon.KillsPerHour),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Δ",
-				Value: weapon.KillsPerHourGrade,
+				Name:   "Δ",
+				Value:  weapon.KillsPerHourGrade,
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "KDR",
-				Value: fmt.Sprintf("%0.2f", weapon.KillDeathRatio),
+				Name:   "KDR",
+				Value:  fmt.Sprintf("%0.2f", weapon.KillDeathRatio),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Δ",
-				Value: weapon.KillDeathRatioGrade,
+				Name:   "Δ",
+				Value:  weapon.KillDeathRatioGrade,
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "HSR",
-				Value: fmt.Sprintf("%0.2f%%", weapon.HeadshotRatio * 100),
+				Name:   "HSR",
+				Value:  fmt.Sprintf("%0.2f%%", weapon.HeadshotRatio*100),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Δ",
-				Value: weapon.HeadshotRatioGrade,
+				Name:   "Δ",
+				Value:  weapon.HeadshotRatioGrade,
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Accuracy",
-				Value: fmt.Sprintf("%0.2f%%", weapon.Accuracy * 100),
+				Name:   "Accuracy",
+				Value:  fmt.Sprintf("%0.2f%%", weapon.Accuracy*100),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Δ",
-				Value: weapon.AccuracyGrade,
+				Name:   "Δ",
+				Value:  weapon.AccuracyGrade,
 				Inline: true,
-        	},
+			},
 		},
 	}
 
@@ -330,39 +279,80 @@ func messagePlanetsideOutfit(s *discordgo.Session, channelId string, outfitAlias
 		},
 		Color: 0x070707,
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
-        	URL: fmt.Sprintf("http://census.daybreakgames.com/files/ps2/images/static/%d.png", outfit.FactionImageId),
-    	},
+			URL: fmt.Sprintf("http://census.daybreakgames.com/files/ps2/images/static/%d.png", outfit.FactionImageId),
+		},
 		Fields: []*discordgo.MessageEmbedField{
 			&discordgo.MessageEmbedField{
-				Name: "Server",
-				Value: outfit.WorldName,
+				Name:   "Server",
+				Value:  outfit.WorldName,
 				Inline: false,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Leader",
-				Value: outfit.LeaderName,
+				Name:   "Leader",
+				Value:  outfit.LeaderName,
 				Inline: false,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Member Count",
-				Value: fmt.Sprintf("%d", outfit.MemberCount),
+				Name:   "Member Count",
+				Value:  fmt.Sprintf("%d", outfit.MemberCount),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Activity 7 Days",
-				Value: fmt.Sprintf("%d", outfit.Activity7Days),
+				Name:   "Activity 7 Days",
+				Value:  fmt.Sprintf("%d", outfit.Activity7Days),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Activity 30 Days",
-				Value: fmt.Sprintf("%d", outfit.Activity30Days),
+				Name:   "Activity 30 Days",
+				Value:  fmt.Sprintf("%d", outfit.Activity30Days),
 				Inline: true,
-        	},
+			},
 			&discordgo.MessageEmbedField{
-				Name: "Activity 90 Days",
-				Value: fmt.Sprintf("%d", outfit.Activity90Days),
+				Name:   "Activity 90 Days",
+				Value:  fmt.Sprintf("%d", outfit.Activity90Days),
 				Inline: true,
-        	},
+			},
+		},
+	}
+
+	s.ChannelMessageSendEmbed(channelId, embed)
+}
+
+func handleWeather(s *discordgo.Session, channelId string, args []string) {
+	messageCurrentWeather(s, channelId, args[0])
+}
+
+func messageCurrentWeather(s *discordgo.Session, channelId string, location string) {
+	values := map[string]string{"location": location}
+	content, _ := json.Marshal(values)
+	resp, err := http.Post("http://mutterblack/command/weather/current", "application/json", bytes.NewBuffer(content))
+	if err != nil {
+		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+
+	var weather CurrentWeather
+	json.Unmarshal(body, &weather)
+
+	var tempCelsius = float32(weather.Temperature)/1.8 - 32
+
+	embed := &discordgo.MessageEmbed{
+		Author: &discordgo.MessageEmbedAuthor{
+			Name: weather.City + ", " + weather.Region + " " + weather.Country,
+		},
+		Color: 0x070707,
+		Fields: []*discordgo.MessageEmbedField{
+			&discordgo.MessageEmbedField{
+				Name:   "Temperature",
+				Value:  fmt.Sprintf("%d °F (%d °C)", weather.Temperature, int32(tempCelsius)),
+				Inline: false,
+			},
+			&discordgo.MessageEmbedField{
+				Name:   "Condition",
+				Value:  weather.Condition,
+				Inline: false,
+			},
 		},
 	}
 
