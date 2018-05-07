@@ -94,9 +94,11 @@ func handlePlanetsideCharacter(s *discordgo.Session, channelId string, args []st
 func messagePlanetsideCharacter(s *discordgo.Session, channelId string, characterName string) {
 	values := map[string]string{"characterName": characterName}
 	content, _ := json.Marshal(values)
-	resp, err := http.Post("http://mutterblack/command/planetside2/character", "application/json", bytes.NewBuffer(content))
+	resp, err := http.Post("http://mutterblack:5000/command/planetside2/character", "application/json", bytes.NewBuffer(content))
 	if err != nil {
+		log.Println(err)
 		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
+		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -127,7 +129,7 @@ func messagePlanetsideCharacter(s *discordgo.Session, channelId string, characte
 			},
 			&discordgo.MessageEmbedField{
 				Name:   "Outfit",
-				Value:  "[" + character.OutfitAlias + "]" + character.OutfitName,
+				Value:  "[" + character.OutfitAlias + "] " + character.OutfitName,
 				Inline: false,
 			},
 			&discordgo.MessageEmbedField{
@@ -164,9 +166,11 @@ func messagePlanetsideCharacter(s *discordgo.Session, channelId string, characte
 func messagePlanetsideCharacterWeapon(s *discordgo.Session, channelId string, characterName string, weaponName string) {
 	values := map[string]string{"characterName": characterName, "weaponName": weaponName}
 	content, _ := json.Marshal(values)
-	resp, err := http.Post("http://mutterblack/command/planetside2/character-weapon", "application/json", bytes.NewBuffer(content))
+	resp, err := http.Post("http://mutterblack:5000/command/planetside2/character-weapon", "application/json", bytes.NewBuffer(content))
 	if err != nil {
+		log.Println(err)
 		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
+		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -263,9 +267,11 @@ func handlePlanetsideOutfit(s *discordgo.Session, channelId string, args []strin
 func messagePlanetsideOutfit(s *discordgo.Session, channelId string, outfitAlias string) {
 	values := map[string]string{"outfitAlias": outfitAlias}
 	content, _ := json.Marshal(values)
-	resp, err := http.Post("http://mutterblack/command/planetside2/outfit", "application/json", bytes.NewBuffer(content))
+	resp, err := http.Post("http://mutterblack:5000/command/planetside2/outfit", "application/json", bytes.NewBuffer(content))
 	if err != nil {
+		log.Println(err)
 		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
+		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
@@ -325,9 +331,11 @@ func handleWeather(s *discordgo.Session, channelId string, args []string) {
 func messageCurrentWeather(s *discordgo.Session, channelId string, location string) {
 	values := map[string]string{"location": location}
 	content, _ := json.Marshal(values)
-	resp, err := http.Post("http://mutterblack/command/weather/current", "application/json", bytes.NewBuffer(content))
+	resp, err := http.Post("http://mutterblack:5000/command/weather/current", "application/json", bytes.NewBuffer(content))
 	if err != nil {
+		log.Println(err)
 		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
+		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
