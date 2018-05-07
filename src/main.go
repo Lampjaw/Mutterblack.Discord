@@ -88,7 +88,8 @@ func handlePlanetsideCharacter(s *discordgo.Session, channelId string, args []st
 		messagePlanetsideCharacter(s, channelId, args[0])
 	} else {
 		characterName, args := args[0], args[1:]
-		messagePlanetsideCharacterWeapon(s, channelId, characterName, strings.Join(args[:], " "))
+		var weaponName = strings.Join(args[:], " ")
+		messagePlanetsideCharacterWeapon(s, channelId, characterName, weaponName)
 	}
 }
 
