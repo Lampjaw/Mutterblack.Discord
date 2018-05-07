@@ -86,8 +86,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 func handlePlanetsideCharacter(s *discordgo.Session, channelId string, args []string) {
 	if len(args) == 1 {
 		messagePlanetsideCharacter(s, channelId, args[0])
-	} else if len(args) == 2 {
-		messagePlanetsideCharacterWeapon(s, channelId, args[0], args[1])
+	} else {
+		characterName, args := args[0], args[1:]
+		messagePlanetsideCharacterWeapon(s, channelId, characterName, strings.Join(args[:], " "))
 	}
 }
 
