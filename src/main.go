@@ -17,6 +17,9 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+const MUTTERBLACK_CORE_URI = "http://mutterblack:5000/"
+const CENSUS_IMAGEBASE_URI = "http://census.daybreakgames.com/files/ps2/images/static/"
+
 func init() {
 	token = os.Getenv("TOKEN")
 }
@@ -37,7 +40,6 @@ func main() {
 		return
 	}
 
-	dg.AddHandler(ready)
 	dg.AddHandler(messageCreate)
 
 	// Open the websocket and begin listening.
@@ -56,10 +58,6 @@ func main() {
 	dg.Close()
 }
 
-func ready(s *discordgo.Session, event *discordgo.Ready) {
-
-}
-
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
@@ -74,39 +72,87 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		switch commandGroup {
 		case "ps2character":
-			handlePlanetsideCharacter(s, m.ChannelID, commandArgs)
+			handlePlanetsideCharacter(s, m, commandArgs)
 		case "ps2outfit":
-			handlePlanetsideOutfit(s, m.ChannelID, commandArgs)
+			handlePlanetsideOutfit(s, m, commandArgs)
 		case "weather":
-			handleWeather(s, m.ChannelID, commandArgs)
+			handleWeather(s, m, commandArgs)
 		}
 	}
 }
 
-func handlePlanetsideCharacter(s *discordgo.Session, channelId string, args []string) {
-	if len(args) == 1 {
-		messagePlanetsideCharacter(s, channelId, args[0])
-	} else {
-		characterName, args := args[0], args[1:]
-		var weaponName = strings.Join(args[:], " ")
-		messagePlanetsideCharacterWeapon(s, channelId, characterName, weaponName)
-	}
+func sendCoreCommand(commandGroup string, commandAction string, args map[string]string) (resp *http.Response, err error) {
+	content, _ := json.Marshal(args)
+
+	var commandUri = MUTTERBLACK_CORE_URI + "command/" + commandGroup + "/" + commandAction
+
+	return http.Post(commandUri, "application/json", bytes.NewBuffer(content))
 }
 
-func messagePlanetsideCharacter(s *discordgo.Session, channelId string, characterName string) {
-	values := map[string]string{"characterName": characterName}
-	content, _ := json.Marshal(values)
-	resp, err := http.Post("http://mutterblack:5000/command/planetside2/character", "application/json", bytes.NewBuffer(content))
+func handleCoreCommand(s *discordgo.Session, m *discordgo.MessageCreate, commandGroup string, commandAction string, args map[string]string) json.RawMessage {
+	resp, err := sendCoreCommand(commandGroup, commandAction, args)
+
 	if err != nil {
 		log.Println(err)
-		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
-		return
+		s.ChannelMessageSend(m.ChannelID, InterProcessCommunicationFailure)
+		return nil
 	}
+
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
+	if err != nil {
+		log.Println(fmt.Sprintf("Failed to get body for %v - %v: %v", commandGroup, commandAction, err))
+		s.ChannelMessageSend(m.ChannelID, "Something went wrong :(")
+		return nil
+	}
+
+	var commandResponse CommandResponse
+	err = json.Unmarshal(body, &commandResponse)
+
+	if err != nil {
+		log.Println(fmt.Sprintf("Failed to unmarshal for %v - %v: %v", commandGroup, commandAction, err))
+		s.ChannelMessageSend(m.ChannelID, "Something went wrong :(")
+		return nil
+	}
+
+	if commandResponse.Error != "" {
+		s.ChannelMessageSend(m.ChannelID, commandResponse.Error)
+		return nil
+	}
+
+	return commandResponse.Result
+}
+
+func handlePlanetsideCharacter(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	if len(args) == 1 {
+		messagePlanetsideCharacter(s, m, args[0])
+	} else {
+		characterName, args := args[0], args[1:]
+		var weaponName = strings.Join(args[:], " ")
+		messagePlanetsideCharacterWeapon(s, m, characterName, weaponName)
+	}
+}
+
+func handlePlanetsideOutfit(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	if len(args) == 1 {
+		messagePlanetsideOutfit(s, m, args[0])
+	}
+}
+
+func handleWeather(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	messageCurrentWeather(s, m, args[0])
+}
+
+func messagePlanetsideCharacter(s *discordgo.Session, m *discordgo.MessageCreate, characterName string) {
+	values := map[string]string{"characterName": characterName}
+	resp := handleCoreCommand(s, m, "planetside2", "character", values)
+	if resp == nil {
+		return
+	}
+
 	var character PlanetsideCharacter
-	json.Unmarshal(body, &character)
+	json.Unmarshal(resp, &character)
 
 	lastSaved, _ := time.Parse(time.RFC3339, character.LastSaved)
 
@@ -114,14 +160,21 @@ func messagePlanetsideCharacter(s *discordgo.Session, channelId string, characte
 		Author: &discordgo.MessageEmbedAuthor{
 			Name: character.Name,
 		},
+		Title: "Click here for full stats",
+		URL:   "https://voidwell.com/ps2/player/" + character.CharacterId,
 		Color: 0x070707,
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
-			URL: fmt.Sprintf("http://census.daybreakgames.com/files/ps2/images/static/%d.png", character.FactionImageId),
+			URL: createCensusImageUri(character.FactionImageId),
 		},
 		Fields: []*discordgo.MessageEmbedField{
 			&discordgo.MessageEmbedField{
 				Name:   "Last Seen",
 				Value:  fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d UTC", lastSaved.Year(), lastSaved.Month(), lastSaved.Day(), lastSaved.Hour(), lastSaved.Minute(), lastSaved.Second()),
+				Inline: false,
+			},
+			&discordgo.MessageEmbedField{
+				Name:   "Server",
+				Value:  character.World,
 				Inline: false,
 			},
 			&discordgo.MessageEmbedField{
@@ -162,31 +215,28 @@ func messagePlanetsideCharacter(s *discordgo.Session, channelId string, characte
 		},
 	}
 
-	s.ChannelMessageSendEmbed(channelId, embed)
+	s.ChannelMessageSendEmbed(m.ChannelID, embed)
 }
 
-func messagePlanetsideCharacterWeapon(s *discordgo.Session, channelId string, characterName string, weaponName string) {
+func messagePlanetsideCharacterWeapon(s *discordgo.Session, m *discordgo.MessageCreate, characterName string, weaponName string) {
 	values := map[string]string{"characterName": characterName, "weaponName": weaponName}
-	content, _ := json.Marshal(values)
-	resp, err := http.Post("http://mutterblack:5000/command/planetside2/character-weapon", "application/json", bytes.NewBuffer(content))
-	if err != nil {
-		log.Println(err)
-		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
+	resp := handleCoreCommand(s, m, "planetside2", "character-weapon", values)
+	if resp == nil {
 		return
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
 
 	var weapon PlanetsideCharacterWeapon
-	json.Unmarshal(body, &weapon)
+	json.Unmarshal(resp, &weapon)
 
 	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
-			Name: characterName + " [" + weapon.WeaponName + "]",
+			Name: weapon.CharacterName + " [" + weapon.WeaponName + "]",
 		},
+		Title: "Click here for full stats",
+		URL:   "https://voidwell.com/ps2/player/" + weapon.CharacterId,
 		Color: 0x070707,
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
-			URL: fmt.Sprintf("http://census.daybreakgames.com/files/ps2/images/static/%d.png", weapon.WeaponImageId),
+			URL: createCensusImageUri(weapon.WeaponImageId),
 		},
 		Fields: []*discordgo.MessageEmbedField{
 			&discordgo.MessageEmbedField{
@@ -252,7 +302,7 @@ func messagePlanetsideCharacterWeapon(s *discordgo.Session, channelId string, ch
 		},
 	}
 
-	message, err := s.ChannelMessageSendEmbed(channelId, embed)
+	message, err := s.ChannelMessageSendEmbed(m.ChannelID, embed)
 	_ = message
 
 	if err != nil {
@@ -260,34 +310,25 @@ func messagePlanetsideCharacterWeapon(s *discordgo.Session, channelId string, ch
 	}
 }
 
-func handlePlanetsideOutfit(s *discordgo.Session, channelId string, args []string) {
-	if len(args) == 1 {
-		messagePlanetsideOutfit(s, channelId, args[0])
-	}
-}
-
-func messagePlanetsideOutfit(s *discordgo.Session, channelId string, outfitAlias string) {
+func messagePlanetsideOutfit(s *discordgo.Session, m *discordgo.MessageCreate, outfitAlias string) {
 	values := map[string]string{"outfitAlias": outfitAlias}
-	content, _ := json.Marshal(values)
-	resp, err := http.Post("http://mutterblack:5000/command/planetside2/outfit", "application/json", bytes.NewBuffer(content))
-	if err != nil {
-		log.Println(err)
-		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
+	resp := handleCoreCommand(s, m, "planetside2", "outfit", values)
+	if resp == nil {
 		return
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
 
 	var outfit PlanetsideOutfit
-	json.Unmarshal(body, &outfit)
+	json.Unmarshal(resp, &outfit)
 
 	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
 			Name: "[" + outfit.Alias + "] " + outfit.Name,
 		},
+		Title: "Click here for full stats",
+		URL:   "https://voidwell.com/ps2/outfit/" + outfit.OutfitId,
 		Color: 0x070707,
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
-			URL: fmt.Sprintf("http://census.daybreakgames.com/files/ps2/images/static/%d.png", outfit.FactionImageId),
+			URL: createCensusImageUri(outfit.FactionImageId),
 		},
 		Fields: []*discordgo.MessageEmbedField{
 			&discordgo.MessageEmbedField{
@@ -323,48 +364,49 @@ func messagePlanetsideOutfit(s *discordgo.Session, channelId string, outfitAlias
 		},
 	}
 
-	s.ChannelMessageSendEmbed(channelId, embed)
+	s.ChannelMessageSendEmbed(m.ChannelID, embed)
 }
 
-func handleWeather(s *discordgo.Session, channelId string, args []string) {
-	messageCurrentWeather(s, channelId, args[0])
-}
-
-func messageCurrentWeather(s *discordgo.Session, channelId string, location string) {
+func messageCurrentWeather(s *discordgo.Session, m *discordgo.MessageCreate, location string) {
 	values := map[string]string{"location": location}
-	content, _ := json.Marshal(values)
-	resp, err := http.Post("http://mutterblack:5000/command/weather/current", "application/json", bytes.NewBuffer(content))
-	if err != nil {
-		log.Println(err)
-		s.ChannelMessageSend(channelId, "Failed to retrieve data :(")
+	resp := handleCoreCommand(s, m, "weather", "forecast", values)
+	if resp == nil {
 		return
 	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
 
 	var weather CurrentWeather
-	json.Unmarshal(body, &weather)
+	json.Unmarshal(resp, &weather)
 
-	var tempCelsius = float32(weather.Temperature)/1.8 - 32
+	var messageFields []*discordgo.MessageEmbedField
+	for i := 0; i < 5; i++ {
+		var field = &discordgo.MessageEmbedField{
+			Name:   weather.Forecast[i].Date,
+			Value:  createWeatherDay(weather.Forecast[i]),
+			Inline: false,
+		}
+		messageFields = append(messageFields, field)
+	}
 
 	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
 			Name: weather.City + ", " + weather.Region + " " + weather.Country,
 		},
-		Color: 0x070707,
-		Fields: []*discordgo.MessageEmbedField{
-			&discordgo.MessageEmbedField{
-				Name:   "Temperature",
-				Value:  fmt.Sprintf("%d °F (%d °C)", weather.Temperature, int32(tempCelsius)),
-				Inline: false,
-			},
-			&discordgo.MessageEmbedField{
-				Name:   "Condition",
-				Value:  weather.Condition,
-				Inline: false,
-			},
-		},
+		Color:  0x070707,
+		Fields: messageFields,
 	}
 
-	s.ChannelMessageSendEmbed(channelId, embed)
+	s.ChannelMessageSendEmbed(m.ChannelID, embed)
+}
+
+func createCensusImageUri(imageId int) string {
+	return CENSUS_IMAGEBASE_URI + fmt.Sprintf("%v", imageId) + ".png"
+}
+
+func createWeatherDay(d WeatherDay) string {
+	var highTempCelsius = (float32(d.High) - 32) / 1.8
+	var lowTempCelsius = (float32(d.Low) - 32) / 1.8
+
+	var temperatureHigh = fmt.Sprintf("%d °F (%d °C)", d.High, int32(highTempCelsius))
+	var temperatureLow = fmt.Sprintf("%d °F (%d °C)", d.Low, int32(lowTempCelsius))
+	return fmt.Sprintf("%s: %s / %s - %s", d.Day, temperatureHigh, temperatureLow, d.Condition)
 }

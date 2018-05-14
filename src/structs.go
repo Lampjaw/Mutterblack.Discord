@@ -1,7 +1,17 @@
 package main
 
+import (
+	"encoding/json"
+)
+
+type CommandResponse struct {
+	Error  string          `json:"error"`
+	Result json.RawMessage `json:"result"`
+}
+
 type PlanetsideCharacter struct {
 	CharacterId    string  `json:"id"`
+	World          string  `json:"world"`
 	Name           string  `json:"name"`
 	LastSaved      string  `json:"lastSaved"`
 	FactionId      int     `json:"factionId"`
@@ -21,6 +31,8 @@ type PlanetsideCharacter struct {
 }
 
 type PlanetsideCharacterWeapon struct {
+	CharacterId         string  `json:"characterId"`
+	CharacterName       string  `json:"characterName"`
 	ItemId              int     `json:"itemId"`
 	WeaponName          string  `json:"weaponName"`
 	WeaponImageId       int     `json:"weaponImageId"`
@@ -40,6 +52,7 @@ type PlanetsideCharacterWeapon struct {
 }
 
 type PlanetsideOutfit struct {
+	OutfitId       string `json:"outfitId"`
 	Name           string `json:"name"`
 	Alias          string `json:"alias"`
 	FactionName    string `json:"factionName"`
@@ -53,9 +66,16 @@ type PlanetsideOutfit struct {
 }
 
 type CurrentWeather struct {
-	City        string `json:"city"`
-	Country     string `json:"country"`
-	Region      string `json:"region"`
-	Temperature int    `json:"temperature"`
-	Condition   string `json:"condition"`
+	City     string       `json:"city"`
+	Country  string       `json:"country"`
+	Region   string       `json:"region"`
+	Forecast []WeatherDay `json:"forecast"`
+}
+
+type WeatherDay struct {
+	Date      string `json:"date"`
+	Day       string `json:"day"`
+	High      int    `json:"high"`
+	Low       int    `json:"low"`
+	Condition string `json:"text"`
 }
