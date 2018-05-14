@@ -19,6 +19,7 @@ import (
 
 const MUTTERBLACK_CORE_URI = "http://mutterblack:5000/"
 const CENSUS_IMAGEBASE_URI = "http://census.daybreakgames.com/files/ps2/images/static/"
+const VOIDWELL_URI = "https://voidwell.com/"
 
 func init() {
 	token = os.Getenv("TOKEN")
@@ -161,7 +162,7 @@ func messagePlanetsideCharacter(s *discordgo.Session, m *discordgo.MessageCreate
 			Name: character.Name,
 		},
 		Title: "Click here for full stats",
-		URL:   "https://voidwell.com/ps2/player/" + character.CharacterId,
+		URL:   VOIDWELL_URI + "ps2/player/" + character.CharacterId,
 		Color: 0x070707,
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
 			URL: createCensusImageUri(character.FactionImageId),
@@ -212,6 +213,11 @@ func messagePlanetsideCharacter(s *discordgo.Session, m *discordgo.MessageCreate
 				Value:  fmt.Sprintf("%0.1f", character.SiegeLevel),
 				Inline: true,
 			},
+			&discordgo.MessageEmbedField{
+				Name:   "IVI Score",
+				Value:  fmt.Sprintf("%d", character.IVIScore),
+				Inline: true,
+			},
 		},
 	}
 
@@ -233,7 +239,7 @@ func messagePlanetsideCharacterWeapon(s *discordgo.Session, m *discordgo.Message
 			Name: weapon.CharacterName + " [" + weapon.WeaponName + "]",
 		},
 		Title: "Click here for full stats",
-		URL:   "https://voidwell.com/ps2/player/" + weapon.CharacterId,
+		URL:   VOIDWELL_URI + "ps2/player/" + weapon.CharacterId,
 		Color: 0x070707,
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
 			URL: createCensusImageUri(weapon.WeaponImageId),
@@ -325,7 +331,7 @@ func messagePlanetsideOutfit(s *discordgo.Session, m *discordgo.MessageCreate, o
 			Name: "[" + outfit.Alias + "] " + outfit.Name,
 		},
 		Title: "Click here for full stats",
-		URL:   "https://voidwell.com/ps2/outfit/" + outfit.OutfitId,
+		URL:   VOIDWELL_URI + "ps2/outfit/" + outfit.OutfitId,
 		Color: 0x070707,
 		Thumbnail: &discordgo.MessageEmbedThumbnail{
 			URL: createCensusImageUri(outfit.FactionImageId),

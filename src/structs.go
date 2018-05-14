@@ -28,6 +28,7 @@ type PlanetsideCharacter struct {
 	HeadshotRatio  float32 `json:"headshotRatio"`
 	KillsPerHour   float32 `json:"killsPerHour"`
 	SiegeLevel     float32 `json:"siegeLevel"`
+	IVIScore       int     `json:"iviScore"`
 }
 
 type PlanetsideCharacterWeapon struct {
