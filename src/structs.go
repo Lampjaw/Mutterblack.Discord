@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 type CommandResponse struct {
@@ -79,4 +81,20 @@ type WeatherDay struct {
 	High      int    `json:"high"`
 	Low       int    `json:"low"`
 	Condition string `json:"text"`
+}
+
+type CommandConfig struct {
+	Triggers           []string
+	Arguments          []CommandConfigArgument
+	Description        string
+	CommandGroup       string
+	CommandGroupAction string
+	Name               string
+	Process            func(s *discordgo.Session, m *discordgo.MessageCreate, resp json.RawMessage)
+}
+
+type CommandConfigArgument struct {
+	CoreAlias string
+	Optional  bool
+	Pattern   string
 }
