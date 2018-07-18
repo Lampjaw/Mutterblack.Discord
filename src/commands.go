@@ -64,6 +64,11 @@ var COMMANDS_CONFIG = []CommandConfig{
 						Inline: false,
 					},
 					&discordgo.MessageEmbedField{
+						Name:   "Kills",
+						Value:  fmt.Sprintf("%d", character.Kills),
+						Inline: true,
+					},
+					&discordgo.MessageEmbedField{
 						Name:   "Play Time",
 						Value:  fmt.Sprintf("%d Hours", character.PlayTime/3600),
 						Inline: true,
