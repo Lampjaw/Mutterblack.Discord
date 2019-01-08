@@ -12,25 +12,28 @@ type CommandResponse struct {
 }
 
 type PlanetsideCharacter struct {
-	CharacterId    string  `json:"id"`
-	World          string  `json:"world"`
-	Name           string  `json:"name"`
-	LastSaved      string  `json:"lastSaved"`
-	FactionId      int     `json:"factionId"`
-	FactionName    string  `json:"factionName"`
-	FactionImageId int     `json:"factionImageId"`
-	BattleRank     int     `json:"battleRank"`
-	OutfitAlias    string  `json:"outfitAlias"`
-	OutfitName     string  `json:"outfitName"`
-	Kills          int     `json:"kills"`
-	Deaths         int     `json:"deaths"`
-	PlayTime       int     `json:"playTime"`
-	Score          int     `json:"score"`
-	KillDeathRatio float32 `json:"killDeathRatio"`
-	HeadshotRatio  float32 `json:"headshotRatio"`
-	KillsPerHour   float32 `json:"killsPerHour"`
-	SiegeLevel     float32 `json:"siegeLevel"`
-	IVIScore       int     `json:"iviScore"`
+	CharacterId          string  `json:"id"`
+	World                string  `json:"world"`
+	Name                 string  `json:"name"`
+	LastSaved            string  `json:"lastSaved"`
+	FactionId            int     `json:"factionId"`
+	FactionName          string  `json:"factionName"`
+	FactionImageId       int     `json:"factionImageId"`
+	BattleRank           int     `json:"battleRank"`
+	OutfitAlias          string  `json:"outfitAlias"`
+	OutfitName           string  `json:"outfitName"`
+	Kills                int     `json:"kills"`
+	Deaths               int     `json:"deaths"`
+	PlayTime             int     `json:"playTime"`
+	TotalPlayTimeMinutes int     `json:"totalPlayTimeMinutes"`
+	Score                int     `json:"score"`
+	KillDeathRatio       float32 `json:"killDeathRatio"`
+	HeadshotRatio        float32 `json:"headshotRatio"`
+	KillsPerHour         float32 `json:"killsPerHour"`
+	TotalKillsPerHour    float32 `json:"totalKillsPerHour"`
+	SiegeLevel           float32 `json:"siegeLevel"`
+	IVIScore             int     `json:"iviScore"`
+	Prestige             int     `json:"prestige"`
 }
 
 type PlanetsideCharacterWeapon struct {

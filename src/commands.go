@@ -32,6 +32,74 @@ var COMMANDS_CONFIG = []CommandConfig{
 
 			lastSaved, _ := time.Parse(time.RFC3339, character.LastSaved)
 
+			fields := []*discordgo.MessageEmbedField{
+				&discordgo.MessageEmbedField{
+					Name:   "Last Seen",
+					Value:  fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d UTC", lastSaved.Year(), lastSaved.Month(), lastSaved.Day(), lastSaved.Hour(), lastSaved.Minute(), lastSaved.Second()),
+					Inline: false,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Server",
+					Value:  character.World,
+					Inline: false,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Battle Rank",
+					Value:  fmt.Sprintf("%d", character.BattleRank),
+					Inline: false,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Kills",
+					Value:  fmt.Sprintf("%d", character.Kills),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Play Time",
+					Value:  fmt.Sprintf("%0.1f (%0.1f) Hours", float32(character.PlayTime)/3600.0, float32(character.TotalPlayTimeMinutes)/60.0),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "KDR",
+					Value:  fmt.Sprintf("%0.2f", character.KillDeathRatio),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "HSR",
+					Value:  fmt.Sprintf("%0.2f%%", character.HeadshotRatio*100),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "KpH",
+					Value:  fmt.Sprintf("%0.2f (%0.2f)", character.KillsPerHour, character.TotalKillsPerHour),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "Siege Level",
+					Value:  fmt.Sprintf("%0.1f", character.SiegeLevel),
+					Inline: true,
+				},
+				&discordgo.MessageEmbedField{
+					Name:   "IVI Score",
+					Value:  fmt.Sprintf("%d", character.IVIScore),
+					Inline: true,
+				},
+			}
+
+			if len(character.OutfitName) > 0 {
+				outfitValue := character.OutfitName
+				if len(character.OutfitAlias) > 0 {
+					outfitValue = "[" + character.OutfitAlias + "] " + character.OutfitName
+				}
+
+				outfitField := &discordgo.MessageEmbedField{
+					Name:   "Outfit",
+					Value:  outfitValue,
+					Inline: false,
+				}
+
+				fields = insertSlice(fields, outfitField, 2)
+			}
+
 			embed := &discordgo.MessageEmbed{
 				Author: &discordgo.MessageEmbedAuthor{
 					Name: character.Name,
@@ -42,63 +110,7 @@ var COMMANDS_CONFIG = []CommandConfig{
 				Thumbnail: &discordgo.MessageEmbedThumbnail{
 					URL: createCensusImageUri(character.FactionImageId),
 				},
-				Fields: []*discordgo.MessageEmbedField{
-					&discordgo.MessageEmbedField{
-						Name:   "Last Seen",
-						Value:  fmt.Sprintf("%d-%02d-%02d %02d:%02d:%02d UTC", lastSaved.Year(), lastSaved.Month(), lastSaved.Day(), lastSaved.Hour(), lastSaved.Minute(), lastSaved.Second()),
-						Inline: false,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "Server",
-						Value:  character.World,
-						Inline: false,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "Battle Rank",
-						Value:  fmt.Sprintf("%d", character.BattleRank),
-						Inline: false,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "Outfit",
-						Value:  "[" + character.OutfitAlias + "] " + character.OutfitName,
-						Inline: false,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "Kills",
-						Value:  fmt.Sprintf("%d", character.Kills),
-						Inline: true,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "Play Time",
-						Value:  fmt.Sprintf("%d Hours", character.PlayTime/3600),
-						Inline: true,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "KDR",
-						Value:  fmt.Sprintf("%0.2f", character.KillDeathRatio),
-						Inline: true,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "HSR",
-						Value:  fmt.Sprintf("%0.2f%%", character.HeadshotRatio*100),
-						Inline: true,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "KpH",
-						Value:  fmt.Sprintf("%0.2f", character.KillsPerHour),
-						Inline: true,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "Siege Level",
-						Value:  fmt.Sprintf("%0.1f", character.SiegeLevel),
-						Inline: true,
-					},
-					&discordgo.MessageEmbedField{
-						Name:   "IVI Score",
-						Value:  fmt.Sprintf("%d", character.IVIScore),
-						Inline: true,
-					},
-				},
+				Fields: fields,
 			}
 
 			s.ChannelMessageSendEmbed(m.ChannelID, embed)
@@ -323,4 +335,8 @@ func createWeatherDay(d WeatherDay) string {
 	var temperatureHigh = fmt.Sprintf("%d °F (%d °C)", d.High, int32(highTempCelsius))
 	var temperatureLow = fmt.Sprintf("%d °F (%d °C)", d.Low, int32(lowTempCelsius))
 	return fmt.Sprintf("%s: %s / %s - %s", d.Day, temperatureHigh, temperatureLow, d.Condition)
+}
+
+func insertSlice(arr []*discordgo.MessageEmbedField, value *discordgo.MessageEmbedField, index int) []*discordgo.MessageEmbedField {
+	return append(arr[:index], append([]*discordgo.MessageEmbedField{value}, arr[index+1:]...)...)
 }
