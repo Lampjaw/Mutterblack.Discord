@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -113,7 +114,7 @@ var COMMANDS_CONFIG = []CommandConfig{
 				Fields: fields,
 			}
 
-			s.ChannelMessageSendEmbed(m.ChannelID, embed)
+			sendMessage(s, m, embed)
 		},
 	},
 	CommandConfig{
@@ -213,7 +214,7 @@ var COMMANDS_CONFIG = []CommandConfig{
 				},
 			}
 
-			s.ChannelMessageSendEmbed(m.ChannelID, embed)
+			sendMessage(s, m, embed)
 		},
 	},
 	CommandConfig{
@@ -279,16 +280,62 @@ var COMMANDS_CONFIG = []CommandConfig{
 				},
 			}
 
-			s.ChannelMessageSendEmbed(m.ChannelID, embed)
+			sendMessage(s, m, embed)
 		},
 	},
 	CommandConfig{
-		Name: "weather-forecast",
+		Name: "weather-current",
 		Triggers: []string{
 			"weather",
 			"w",
 		},
 		Description:        COMMAND_PREFIX + "w <location>",
+		CommandGroup:       "weather",
+		CommandGroupAction: "current",
+		Arguments: []CommandConfigArgument{
+			CommandConfigArgument{
+				Pattern:   ".*",
+				CoreAlias: "location",
+			},
+		},
+		Process: func(s *discordgo.Session, m *discordgo.MessageCreate, resp json.RawMessage) {
+			var weather CurrentWeather
+			json.Unmarshal(resp, &weather)
+
+			embed := &discordgo.MessageEmbed{
+				Author: &discordgo.MessageEmbedAuthor{
+					Name: weather.City + ", " + weather.Region + " - " + weather.Country,
+				},
+				Color:       0x070707,
+				Description: fmt.Sprintf("Currently %s and %s with a high of %s and a low of %s.", convertToTempString(weather.Temperature), weather.Condition, convertToTempString(weather.ForecastHigh), convertToTempString(weather.ForecastLow)),
+				Fields: []*discordgo.MessageEmbedField{
+					&discordgo.MessageEmbedField{
+						Name:   "Wind Speed",
+						Value:  fmt.Sprintf("%0.1f MpH", weather.WindSpeed),
+						Inline: true,
+					},
+					&discordgo.MessageEmbedField{
+						Name:   "Wind Chill",
+						Value:  convertToTempString(weather.WindChill),
+						Inline: true,
+					},
+					&discordgo.MessageEmbedField{
+						Name:   "Humidity",
+						Value:  fmt.Sprintf("%d%%", weather.Humidity),
+						Inline: true,
+					},
+				},
+			}
+
+			sendMessage(s, m, embed)
+		},
+	},
+	CommandConfig{
+		Name: "weather-forecast",
+		Triggers: []string{
+			"wf",
+		},
+		Description:        COMMAND_PREFIX + "wf <location>",
 		CommandGroup:       "weather",
 		CommandGroupAction: "forecast",
 		Arguments: []CommandConfigArgument{
@@ -298,7 +345,7 @@ var COMMANDS_CONFIG = []CommandConfig{
 			},
 		},
 		Process: func(s *discordgo.Session, m *discordgo.MessageCreate, resp json.RawMessage) {
-			var weather CurrentWeather
+			var weather ForecastWeather
 			json.Unmarshal(resp, &weather)
 
 			var messageFields []*discordgo.MessageEmbedField
@@ -313,13 +360,13 @@ var COMMANDS_CONFIG = []CommandConfig{
 
 			embed := &discordgo.MessageEmbed{
 				Author: &discordgo.MessageEmbedAuthor{
-					Name: weather.City + ", " + weather.Region + " " + weather.Country,
+					Name: weather.City + ", " + weather.Region + " - " + weather.Country,
 				},
 				Color:  0x070707,
 				Fields: messageFields,
 			}
 
-			s.ChannelMessageSendEmbed(m.ChannelID, embed)
+			sendMessage(s, m, embed)
 		},
 	},
 }
@@ -329,14 +376,29 @@ func createCensusImageUri(imageId int) string {
 }
 
 func createWeatherDay(d WeatherDay) string {
-	var highTempCelsius = (float32(d.High) - 32) / 1.8
-	var lowTempCelsius = (float32(d.Low) - 32) / 1.8
-
-	var temperatureHigh = fmt.Sprintf("%d °F (%d °C)", d.High, int32(highTempCelsius))
-	var temperatureLow = fmt.Sprintf("%d °F (%d °C)", d.Low, int32(lowTempCelsius))
+	var temperatureHigh = convertToTempString(d.High)
+	var temperatureLow = convertToTempString(d.Low)
 	return fmt.Sprintf("%s: %s / %s - %s", d.Day, temperatureHigh, temperatureLow, d.Condition)
+}
+
+func convertToTempString(temp int) string {
+	var tempCelsius = convertToCelsius(temp)
+	return fmt.Sprintf("%d °F (%d °C)", temp, int32(tempCelsius))
+}
+
+func convertToCelsius(temp int) float32 {
+	return (float32(temp) - 32) / 1.8
 }
 
 func insertSlice(arr []*discordgo.MessageEmbedField, value *discordgo.MessageEmbedField, index int) []*discordgo.MessageEmbedField {
 	return append(arr[:index], append([]*discordgo.MessageEmbedField{value}, arr[index+1:]...)...)
+}
+
+func sendMessage(s *discordgo.Session, m *discordgo.MessageCreate, e *discordgo.MessageEmbed) {
+	_, err := s.ChannelMessageSendEmbed(m.ChannelID, e)
+
+	if err != nil {
+		log.Println(fmt.Sprintf("Failed to send message: %v", err))
+		s.ChannelMessageSend(m.ChannelID, "Something went wrong :(")
+	}
 }

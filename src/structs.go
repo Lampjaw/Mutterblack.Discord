@@ -72,6 +72,19 @@ type PlanetsideOutfit struct {
 }
 
 type CurrentWeather struct {
+	City         string  `json:"city"`
+	Country      string  `json:"country"`
+	Region       string  `json:"region"`
+	Condition    string  `json:"condition"`
+	Temperature  int     `json:"temperature"`
+	Humidity     int     `json:"humidity"`
+	WindChill    int     `json:"windChill"`
+	WindSpeed    float32 `json:"windSpeed"`
+	ForecastHigh int     `json:"forecastHigh"`
+	ForecastLow  int     `json:"forecastLow"`
+}
+
+type ForecastWeather struct {
 	City     string       `json:"city"`
 	Country  string       `json:"country"`
 	Region   string       `json:"region"`
