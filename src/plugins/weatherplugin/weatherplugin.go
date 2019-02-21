@@ -6,7 +6,7 @@ import (
 	"log"
 	"sync"
 
-	mutterblack "../.."
+	"github.com/lampjaw/mutterblack.discord/src"
 	"github.com/bwmarrin/discordgo"
 )
 
