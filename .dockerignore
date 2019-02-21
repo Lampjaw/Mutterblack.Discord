@@ -1,0 +1,9 @@
+/.vs
+/.git
+.gitignore
+config
+Dockerfile
+new-build.sh
+
+
+

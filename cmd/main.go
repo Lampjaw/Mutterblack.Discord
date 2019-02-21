@@ -6,11 +6,11 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/lampjaw/mutterblack.discord/src"
-	"github.com/lampjaw/mutterblack.discord/src/plugins/inviteplugin"
-	"github.com/lampjaw/mutterblack.discord/src/plugins/planetsidetwoplugin"
-	"github.com/lampjaw/mutterblack.discord/src/plugins/statsplugin"
-	"github.com/lampjaw/mutterblack.discord/src/plugins/weatherplugin"
+	"github.com/lampjaw/mutterblack.discord"
+	"github.com/lampjaw/mutterblack.discord/plugins/inviteplugin"
+	"github.com/lampjaw/mutterblack.discord/plugins/planetsidetwoplugin"
+	"github.com/lampjaw/mutterblack.discord/plugins/statsplugin"
+	"github.com/lampjaw/mutterblack.discord/plugins/weatherplugin"
 )
 
 func init() {

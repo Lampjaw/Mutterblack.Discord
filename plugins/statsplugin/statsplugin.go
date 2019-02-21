@@ -9,7 +9,7 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/lampjaw/mutterblack.discord/src"
+	"github.com/lampjaw/mutterblack.discord"
 	"github.com/bwmarrin/discordgo"
 	"github.com/dustin/go-humanize"
 )

@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/lampjaw/mutterblack.discord/src"
+	"github.com/lampjaw/mutterblack.discord"
 )
 
 func discordInviteID(id string) string {
