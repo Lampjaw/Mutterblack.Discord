@@ -69,17 +69,18 @@ func (b *Bot) listen(messageChan <-chan Message) {
 }
 
 func findCommandMatch(b *Bot, plugin Plugin, message Message) {
-	if plugin.Commands() == nil {
+	defer MessageRecover()
+
+	if plugin.Commands() == nil || message.Message() == "" {
 		return
 	}
-
-	defer MessageRecover()
 
 	for _, commandDefinition := range plugin.Commands() {
 		for _, trigger := range commandDefinition.Triggers {
 			var trig = b.Client.CommandPrefix() + trigger
+			var parts = strings.Split(message.Message(), " ")
 
-			if strings.HasPrefix(message.Message(), trig) {
+			if parts[0] == trig {
 				log.Printf("<%s> %s: %s\n", message.Channel(), message.UserName(), message.Message())
 
 				if commandDefinition.Arguments == nil {
