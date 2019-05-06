@@ -5,10 +5,12 @@ import (
 )
 
 type CommandDefinition struct {
-	Description string
-	Triggers    []string
-	Arguments   []CommandDefinitionArgument
-	Callback    func(bot *Bot, client *Discord, message Message, args map[string]string)
+	Description  string
+	CommandID    string
+	CommandGroup string
+	Triggers     []string
+	Arguments    []CommandDefinitionArgument
+	Callback     func(bot *Bot, client *Discord, message Message, args map[string]string)
 }
 
 type CommandDefinitionArgument struct {

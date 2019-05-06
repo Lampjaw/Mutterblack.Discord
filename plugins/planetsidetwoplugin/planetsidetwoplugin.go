@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/lampjaw/mutterblack.discord"
 	"github.com/bwmarrin/discordgo"
+	"github.com/lampjaw/mutterblack.discord"
 )
 
 const CENSUS_IMAGEBASE_URI = "http://census.daybreakgames.com/files/ps2/images/static/"
@@ -82,6 +82,8 @@ type PlanetsideOutfit struct {
 func (p *planetsidetwoPlugin) Commands() []mutterblack.CommandDefinition {
 	return []mutterblack.CommandDefinition{
 		mutterblack.CommandDefinition{
+			CommandGroup: p.Name(),
+			CommandID:    "ps2-character",
 			Triggers: []string{
 				"ps2c",
 			},
@@ -95,6 +97,8 @@ func (p *planetsidetwoPlugin) Commands() []mutterblack.CommandDefinition {
 			Callback:    p.runCharacterStatsCommand,
 		},
 		mutterblack.CommandDefinition{
+			CommandGroup: p.Name(),
+			CommandID:    "ps2-character-weapons",
 			Triggers: []string{
 				"ps2c",
 			},
@@ -112,6 +116,8 @@ func (p *planetsidetwoPlugin) Commands() []mutterblack.CommandDefinition {
 			Callback:    p.runCharacterWeaponStatsCommand,
 		},
 		mutterblack.CommandDefinition{
+			CommandGroup: p.Name(),
+			CommandID:    "ps2-outfit",
 			Triggers: []string{
 				"ps2o",
 			},
@@ -430,5 +436,5 @@ func createCensusImageURI(imageId int) string {
 }
 
 func insertSlice(arr []*discordgo.MessageEmbedField, value *discordgo.MessageEmbedField, index int) []*discordgo.MessageEmbedField {
-	return append(arr[:index], append([]*discordgo.MessageEmbedField{value}, arr[index+1:]...)...)
+	return append(arr[:index], append([]*discordgo.MessageEmbedField{value}, arr[index:]...)...)
 }

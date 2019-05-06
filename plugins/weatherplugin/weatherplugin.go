@@ -6,8 +6,8 @@ import (
 	"log"
 	"sync"
 
-	"github.com/lampjaw/mutterblack.discord"
 	"github.com/bwmarrin/discordgo"
+	"github.com/lampjaw/mutterblack.discord"
 )
 
 type weatherPlugin struct {
@@ -45,6 +45,8 @@ type WeatherDay struct {
 func (p *weatherPlugin) Commands() []mutterblack.CommandDefinition {
 	return []mutterblack.CommandDefinition{
 		mutterblack.CommandDefinition{
+			CommandGroup: p.Name(),
+			CommandID:    "weather-current",
 			Triggers: []string{
 				"w",
 				"weather",
@@ -59,6 +61,8 @@ func (p *weatherPlugin) Commands() []mutterblack.CommandDefinition {
 			Callback:    p.runCurrentWeatherCommand,
 		},
 		mutterblack.CommandDefinition{
+			CommandGroup: p.Name(),
+			CommandID:    "weather-forecast",
 			Triggers: []string{
 				"wf",
 				"forecast",
