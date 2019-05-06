@@ -56,6 +56,7 @@ func (b *Bot) RegisterPlugin(plugin Plugin) {
 }
 
 func (b *Bot) listen(messageChan <-chan Message) {
+	log.Printf("Listening")
 	for {
 		message := <-messageChan
 		plugins := b.Plugins
