@@ -195,7 +195,7 @@ func (p *planetsidetwoPlugin) runCharacterStatsCommand(bot *mutterblack.Bot, cli
 		&discordgo.MessageEmbedField{
 			Name:   "Server",
 			Value:  character.World,
-			Inline: false,
+			Inline: true,
 		},
 		&discordgo.MessageEmbedField{
 			Name:   "Battle Rank",
@@ -253,7 +253,7 @@ func (p *planetsidetwoPlugin) runCharacterStatsCommand(bot *mutterblack.Bot, cli
 		outfitField := &discordgo.MessageEmbedField{
 			Name:   "Outfit",
 			Value:  outfitValue,
-			Inline: false,
+			Inline: true,
 		}
 
 		fields = insertSlice(fields, outfitField, 2)
