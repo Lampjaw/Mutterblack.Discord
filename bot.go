@@ -85,14 +85,14 @@ func findCommandMatch(b *Bot, plugin Plugin, message Message) {
 				log.Printf("<%s> %s: %s\n", message.Channel(), message.UserName(), message.Message())
 
 				if commandDefinition.Arguments == nil {
-					commandDefinition.Callback(b, b.Client, message, nil)
+					commandDefinition.Callback(b, b.Client, message, nil, nil)
 					return
 				}
 
 				parsedArgs := extractCommandArguments(message, trig, commandDefinition.Arguments)
 
 				if parsedArgs != nil {
-					commandDefinition.Callback(b, b.Client, message, parsedArgs)
+					commandDefinition.Callback(b, b.Client, message, parsedArgs, trig)
 					return
 				}
 			}

@@ -10,7 +10,7 @@ type CommandDefinition struct {
 	CommandGroup string
 	Triggers     []string
 	Arguments    []CommandDefinitionArgument
-	Callback     func(bot *Bot, client *Discord, message Message, args map[string]string)
+	Callback     func(bot *Bot, client *Discord, message Message, args map[string]string, trigger string)
 }
 
 type CommandDefinitionArgument struct {

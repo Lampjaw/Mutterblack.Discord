@@ -116,7 +116,7 @@ func New() mutterblack.Plugin {
 	return &weatherPlugin{}
 }
 
-func (p *weatherPlugin) runCurrentWeatherCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string) {
+func (p *weatherPlugin) runCurrentWeatherCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string, trigger string) {
 	resp, err := mutterblack.SendCoreCommand("weather", "current", args)
 
 	if err != nil {
@@ -159,7 +159,7 @@ func (p *weatherPlugin) runCurrentWeatherCommand(bot *mutterblack.Bot, client *m
 	p.RUnlock()
 }
 
-func (p *weatherPlugin) runForecastWeatherCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string) {
+func (p *weatherPlugin) runForecastWeatherCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string, trigger string) {
 	resp, err := mutterblack.SendCoreCommand("weather", "forecast", args)
 
 	if err != nil {

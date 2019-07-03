@@ -86,6 +86,8 @@ func (p *planetsidetwoPlugin) Commands() []mutterblack.CommandDefinition {
 			CommandID:    "ps2-character",
 			Triggers: []string{
 				"ps2c",
+				"ps2c-ps4us",
+				"ps2c-ps4eu",
 			},
 			Arguments: []mutterblack.CommandDefinitionArgument{
 				mutterblack.CommandDefinitionArgument{
@@ -101,6 +103,8 @@ func (p *planetsidetwoPlugin) Commands() []mutterblack.CommandDefinition {
 			CommandID:    "ps2-character-weapons",
 			Triggers: []string{
 				"ps2c",
+				"ps2c-ps4us",
+				"ps2c-ps4eu",
 			},
 			Arguments: []mutterblack.CommandDefinitionArgument{
 				mutterblack.CommandDefinitionArgument{
@@ -120,6 +124,8 @@ func (p *planetsidetwoPlugin) Commands() []mutterblack.CommandDefinition {
 			CommandID:    "ps2-outfit",
 			Triggers: []string{
 				"ps2o",
+				"ps2o-ps4us",
+				"ps2o-ps4eu",
 			},
 			Arguments: []mutterblack.CommandDefinitionArgument{
 				mutterblack.CommandDefinitionArgument{
@@ -154,8 +160,14 @@ func (p *planetsidetwoPlugin) Save() ([]byte, error) {
 func (p *planetsidetwoPlugin) Help(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, detailed bool) []string {
 	return []string{
 		mutterblack.CommandHelp(client, "ps2c", "<character name>", "Get stats for a player.")[0],
+		mutterblack.CommandHelp(client, "ps2c-ps4us", "<character name>", "Get stats for a player.")[0],
+		mutterblack.CommandHelp(client, "ps2c-ps4eu", "<character name>", "Get stats for a player.")[0],
 		mutterblack.CommandHelp(client, "ps2c", "<character name> <weapon name>", "Get weapon stats for a player.")[0],
+		mutterblack.CommandHelp(client, "ps2c-ps4us", "<character name> <weapon name>", "Get weapon stats for a player.")[0],
+		mutterblack.CommandHelp(client, "ps2c-ps4eu", "<character name> <weapon name>", "Get weapon stats for a player.")[0],
 		mutterblack.CommandHelp(client, "ps2o", "<outfit name>", "Get outfit stats")[0],
+		mutterblack.CommandHelp(client, "ps2o-ps4us", "<outfit name>", "Get outfit stats")[0],
+		mutterblack.CommandHelp(client, "ps2o-ps4eu", "<outfit name>", "Get outfit stats")[0],
 	}
 }
 
@@ -171,7 +183,15 @@ func New() mutterblack.Plugin {
 	return &planetsidetwoPlugin{}
 }
 
-func (p *planetsidetwoPlugin) runCharacterStatsCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string) {
+func (p *planetsidetwoPlugin) runCharacterStatsCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string, trigger string) {
+	if trigger == "ps2c-ps4us" {
+		args["platform"] = "ps4us"
+	} else if trigger == "ps2c-ps4eu" {
+		args["platform"] = "ps4eu"
+	} else {
+		args["platform"] = "pc"
+	}
+
 	resp, err := mutterblack.SendCoreCommand("planetside2", "character", args)
 
 	if err != nil {
@@ -277,7 +297,15 @@ func (p *planetsidetwoPlugin) runCharacterStatsCommand(bot *mutterblack.Bot, cli
 	p.RUnlock()
 }
 
-func (p *planetsidetwoPlugin) runCharacterWeaponStatsCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string) {
+func (p *planetsidetwoPlugin) runCharacterWeaponStatsCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string, trigger string) {
+	if trigger == "ps2c-ps4us" {
+		args["platform"] = "ps4us"
+	} else if trigger == "ps2c-ps4eu" {
+		args["platform"] = "ps4eu"
+	} else {
+		args["platform"] = "pc"
+	}
+
 	resp, err := mutterblack.SendCoreCommand("planetside2", "character-weapon", args)
 
 	if err != nil {
@@ -369,7 +397,15 @@ func (p *planetsidetwoPlugin) runCharacterWeaponStatsCommand(bot *mutterblack.Bo
 	p.RUnlock()
 }
 
-func (p *planetsidetwoPlugin) runOutfitStatsCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string) {
+func (p *planetsidetwoPlugin) runOutfitStatsCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string, trigger string) {
+	if trigger == "ps2c-ps4us" {
+		args["platform"] = "ps4us"
+	} else if trigger == "ps2c-ps4eu" {
+		args["platform"] = "ps4eu"
+	} else {
+		args["platform"] = "pc"
+	}
+
 	resp, err := mutterblack.SendCoreCommand("planetside2", "outfit", args)
 
 	if err != nil {
