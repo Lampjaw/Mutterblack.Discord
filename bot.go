@@ -92,7 +92,7 @@ func findCommandMatch(b *Bot, plugin Plugin, message Message) {
 				parsedArgs := extractCommandArguments(message, trig, commandDefinition.Arguments)
 
 				if parsedArgs != nil {
-					commandDefinition.Callback(b, b.Client, message, parsedArgs, trig)
+					commandDefinition.Callback(b, b.Client, message, parsedArgs, trigger)
 					return
 				}
 			}
