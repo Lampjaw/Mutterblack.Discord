@@ -2,7 +2,8 @@ package mutterblack
 
 import (
 	"errors"
-	"time"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 // MessageType is a type used to determine the CRUD state of a message.
@@ -26,7 +27,7 @@ type Message interface {
 	RawMessage() string
 	MessageID() string
 	Type() MessageType
-	Timestamp() (time.Time, error)
+	Timestamp() discordgo.Timestamp
 }
 
 var ErrAlreadyJoined = errors.New("Already joined.")
