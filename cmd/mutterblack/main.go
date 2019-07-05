@@ -10,6 +10,7 @@ import (
 	"github.com/lampjaw/mutterblack.discord/plugins/inviteplugin"
 	"github.com/lampjaw/mutterblack.discord/plugins/planetsidetwoplugin"
 	"github.com/lampjaw/mutterblack.discord/plugins/statsplugin"
+	"github.com/lampjaw/mutterblack.discord/plugins/uwutranslatorplugin"
 	"github.com/lampjaw/mutterblack.discord/plugins/weatherplugin"
 )
 
@@ -50,6 +51,7 @@ func main() {
 	bot.RegisterPlugin(mutterblack.NewHelpPlugin())
 	bot.RegisterPlugin(weatherplugin.New())
 	bot.RegisterPlugin(planetsidetwoplugin.New())
+	bot.RegisterPlugin(uwutranslatorplugin.New())
 
 	bot.Open()
 

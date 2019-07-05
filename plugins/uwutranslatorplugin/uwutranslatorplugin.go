@@ -65,7 +65,29 @@ func New() mutterblack.Plugin {
 }
 
 func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string, trigger string) {
-	resp, err := mutterblack.SendCoreCommand("uwutranslator", "translate", args)
+	previousMessages, err := client.GetMessages(message.Channel(), 1, message.MessageID())
+	if err != nil {
+		p.RLock()
+		client.SendMessage(message.Channel(), fmt.Sprintf("%s", err))
+		p.RUnlock()
+		return
+	}
+
+	if previousMessages == nil || len(previousMessages) == 0 {
+		p.RLock()
+		client.SendMessage(message.Channel(), "Unable to find a message to translate.")
+		p.RUnlock()
+		return
+	}
+
+	if client.IsMe(previousMessages[0]) {
+		return
+	}
+
+	textArg := make(map[string]string)
+	textArg["text"] = previousMessages[0].Message()
+
+	resp, err := mutterblack.SendCoreCommand("uwutranslator", "translate", textArg)
 
 	if err != nil {
 		p.RLock()
