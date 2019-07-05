@@ -100,6 +100,9 @@ func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *
 		return
 	}
 
+	channel, err := client.Channel(message.Channel())
+	guild, err := client.Guild(channel.GuildID)
+
 	var translatedText string
 	json.Unmarshal(resp, &translatedText)
 
@@ -114,7 +117,7 @@ func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *
 		Color:       0x070707,
 		Description: translatedText,
 		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("in %s - %s", previousMessage.Channel(), sTimestamp),
+			Text: fmt.Sprintf("in #%s at %s - %s", channel.Name, guild.Name, sTimestamp),
 		},
 	}
 
