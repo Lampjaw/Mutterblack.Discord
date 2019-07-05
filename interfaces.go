@@ -2,6 +2,7 @@ package mutterblack
 
 import (
 	"errors"
+	"time"
 )
 
 // MessageType is a type used to determine the CRUD state of a message.
@@ -25,7 +26,7 @@ type Message interface {
 	RawMessage() string
 	MessageID() string
 	Type() MessageType
-	Timestamp() string
+	Timestamp() (time.Time, error)
 }
 
 var ErrAlreadyJoined = errors.New("Already joined.")
