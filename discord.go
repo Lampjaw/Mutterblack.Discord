@@ -4,6 +4,7 @@ import (
 	"io"
 	"log"
 	"regexp"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -72,8 +73,8 @@ func (m *DiscordMessage) Type() MessageType {
 	return m.MessageType
 }
 
-func (m *DiscordMessage) Timestamp() discordgo.Timestamp {
-	return m.DiscordgoMessage.Timestamp
+func (m *DiscordMessage) Timestamp() (time.Time, error) {
+	return m.DiscordgoMessage.Timestamp.Parse()
 }
 
 type Discord struct {
