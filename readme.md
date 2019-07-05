@@ -1,6 +1,6 @@
 **Commands**
 
-*Server Admin*
+*Server Admin (Not yet available)*
 - `?configure prefix <commandPrefix>` - Sets the prefix for all commands. Defaults to `?`.
 - `?configure setChannel <channel>` - Restrict all bot commands to a specific channel.
 - `?configure removeChannel <channel>` - Remove all bot commands from a channel.
@@ -22,9 +22,15 @@
 - `?invite` - Returns a URL to add the bot to your server.
 
 *Planetside 2*
-- `?ps2c <characterName>` - Player stats.
-- `?ps2c <characterName> <weaponName>` - Player weapon stats.
-- `?ps2o <outfitTag>` - Outfit stats.
+- `?ps2c <characterName>` - Player stats (PC).
+- `?ps2c-ps4us <characterName>` - Player stats (PS4US).
+- `?ps2c-ps4eu <characterName>` - Player stats (PS4EU).
+- `?ps2c <characterName> <weaponName>` - Player weapon stats (PC).
+- `?ps2c-ps4us <characterName> <weaponName>` - Player weapon stats (PS4US).
+- `?ps2c-ps4eu <characterName> <weaponName>` - Player weapon stats (PS4EU).
+- `?ps2o <outfitTag>` - Outfit stats (PC).
+- `?ps2o-ps4us <outfitTag>` - Outfit stats (PS4US).
+- `?ps2o-ps4eu <outfitTag>` - Outfit stats (PS4EU).
 
 *Weather*
 - `?w <location>` - Current weather conditions.
