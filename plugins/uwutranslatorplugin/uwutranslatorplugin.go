@@ -6,6 +6,7 @@ import (
 	"log"
 	"sync"
 
+	"github.com/bwmarrin/discordgo"
 	"github.com/lampjaw/mutterblack.discord"
 )
 
@@ -66,6 +67,7 @@ func New() mutterblack.Plugin {
 
 func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *mutterblack.Discord, message mutterblack.Message, args map[string]string, trigger string) {
 	previousMessages, err := client.GetMessages(message.Channel(), 1, message.MessageID())
+
 	if err != nil {
 		p.RLock()
 		client.SendMessage(message.Channel(), fmt.Sprintf("%s", err))
@@ -80,12 +82,14 @@ func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *
 		return
 	}
 
-	if client.IsMe(previousMessages[0]) {
+	var previousMessage = previousMessages[0]
+
+	if client.IsMe(previousMessage) {
 		return
 	}
 
 	textArg := make(map[string]string)
-	textArg["text"] = previousMessages[0].Message()
+	textArg["text"] = previousMessage.Message()
 
 	resp, err := mutterblack.SendCoreCommand("uwutranslator", "translate", textArg)
 
@@ -99,7 +103,16 @@ func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *
 	var translatedText string
 	json.Unmarshal(resp, &translatedText)
 
+	embed := &discordgo.MessageEmbed{
+		Author: &discordgo.MessageEmbedAuthor{
+			Name:    previousMessage.UserName(),
+			IconURL: previousMessage.UserAvatar(),
+		},
+		Color:       0x070707,
+		Description: translatedText,
+	}
+
 	p.RLock()
-	client.SendMessage(message.Channel(), translatedText)
+	client.SendEmbedMessage(message.Channel(), embed)
 	p.RUnlock()
 }
