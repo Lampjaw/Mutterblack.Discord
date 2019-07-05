@@ -23,7 +23,7 @@ func (p *uwutranslatorPlugin) Commands() []mutterblack.CommandDefinition {
 				"twanswate",
 			},
 			Arguments:   nil,
-			Description: "Get stats for a player.",
+			Description: "Translate the previous message UwU.",
 			Callback:    p.runTranslateCommand,
 		},
 	}
