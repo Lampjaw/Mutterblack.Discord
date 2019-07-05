@@ -374,6 +374,24 @@ func (d *Discord) MessageHistory(channel string) []Message {
 	return messages
 }
 
+func (d *Discord) GetMessages(channelID string, limit int, beforeID string) ([]Message, error) {
+	channelMessages, err := d.Session.ChannelMessages(channelID, limit, beforeID, "", "")
+	if err != nil {
+		return nil, err
+	}
+
+	messages := make([]Message, len(channelMessages))
+	for i := 0; i < len(channelMessages); i++ {
+		messages[i] = &DiscordMessage{
+			Discord:          d,
+			DiscordgoMessage: channelMessages[i],
+			MessageType:      MessageTypeCreate,
+		}
+	}
+
+	return messages, err
+}
+
 func (d *Discord) Channel(channelID string) (channel *discordgo.Channel, err error) {
 	for _, s := range d.Sessions {
 		channel, err = s.State.Channel(channelID)
