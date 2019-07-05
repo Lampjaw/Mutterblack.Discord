@@ -103,6 +103,9 @@ func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *
 	var translatedText string
 	json.Unmarshal(resp, &translatedText)
 
+	timestamp, err := previousMessage.Timestamp()
+	sTimestamp := timestamp.Format("01/02/2006")
+
 	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
 			Name:    previousMessage.UserName(),
@@ -110,6 +113,9 @@ func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *
 		},
 		Color:       0x070707,
 		Description: translatedText,
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: fmt.Sprintf("in %s - %s", previousMessage.Channel(), sTimestamp),
+		},
 	}
 
 	p.RLock()
