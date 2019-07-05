@@ -4,6 +4,8 @@ import (
 	"io"
 	"log"
 	"regexp"
+	"strconv"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -70,6 +72,19 @@ func (m *DiscordMessage) MessageID() string {
 
 func (m *DiscordMessage) Type() MessageType {
 	return m.MessageType
+}
+
+func (m *DiscordMessage) Timestamp() (time.Time, error) {
+	flake, err := strconv.ParseInt(m.MessageID(), 10, 64)
+
+	if err != nil {
+		return time.Now(), err
+	}
+
+	flakeTime := flake/4194304 + 1420070400000
+
+	timestamp := time.Unix(flakeTime, 0)
+	return timestamp, nil
 }
 
 type Discord struct {

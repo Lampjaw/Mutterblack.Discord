@@ -25,6 +25,7 @@ type Message interface {
 	RawMessage() string
 	MessageID() string
 	Type() MessageType
+	Timestamp() string
 }
 
 var ErrAlreadyJoined = errors.New("Already joined.")
