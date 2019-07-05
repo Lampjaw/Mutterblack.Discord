@@ -107,7 +107,6 @@ func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *
 	json.Unmarshal(resp, &translatedText)
 
 	timestamp, err := previousMessage.Timestamp()
-	sTimestamp := timestamp.Format("01/02/2006")
 
 	embed := &discordgo.MessageEmbed{
 		Author: &discordgo.MessageEmbedAuthor{
