@@ -116,8 +116,9 @@ func (p *uwutranslatorPlugin) runTranslateCommand(bot *mutterblack.Bot, client *
 		},
 		Color:       0x070707,
 		Description: translatedText,
+		Timestamp:   timestamp.UTC().Format("2006-01-02T15:04:05-0700"),
 		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("in #%s at %s - %s", channel.Name, guild.Name, sTimestamp),
+			Text: fmt.Sprintf("in #%s at %s", channel.Name, guild.Name),
 		},
 	}
 
