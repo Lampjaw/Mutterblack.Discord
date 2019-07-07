@@ -129,7 +129,7 @@ func (p *planetsidetwoPlugin) Commands() []mutterblack.CommandDefinition {
 			},
 			Arguments: []mutterblack.CommandDefinitionArgument{
 				mutterblack.CommandDefinitionArgument{
-					Pattern: "[a-zA-Z0-9]{2,4}",
+					Pattern: "[a-zA-Z0-9]{1,4}",
 					Alias:   "outfitAlias",
 				},
 			},
