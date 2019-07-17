@@ -25,6 +25,7 @@ type CurrentWeather struct {
 	WindSpeed    float32 `json:"windSpeed"`
 	ForecastHigh int     `json:"forecastHigh"`
 	ForecastLow  int     `json:"forecastLow"`
+	HeatIndex    int     `json:"heatIndex"`
 }
 
 type ForecastWeather struct {
@@ -149,6 +150,11 @@ func (p *weatherPlugin) runCurrentWeatherCommand(bot *mutterblack.Bot, client *m
 			&discordgo.MessageEmbedField{
 				Name:   "Humidity",
 				Value:  fmt.Sprintf("%d%%", weather.Humidity),
+				Inline: true,
+			},
+			&discordgo.MessageEmbedField{
+				Name:   "Heat Index",
+				Value:  convertToTempString(weather.HeatIndex),
 				Inline: true,
 			},
 		},
