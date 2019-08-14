@@ -1,3 +1,5 @@
+# This repository is no longer supported. Please see the latest Mutterblack implementation at [https://github.com/lampjaw/mutterblack](https://github.com/lampjaw/mutterblack)
+
 **Commands**
 
 *Server Admin (Not yet available)*
